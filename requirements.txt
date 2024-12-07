@@ -1,0 +1,5 @@
+flake8==3.7.8
+Flask==1.1.1
+Flask-Devices==0.0.1
+Flask-SQLAlchemy==2.4.1
+line-bot-sdk==1.5.0
