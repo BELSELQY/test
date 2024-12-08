@@ -1,5 +1,7 @@
 flake8==3.7.8
-Flask==1.1.1
+Flask==3.0.3
 Flask-Devices==0.0.1
-Flask-SQLAlchemy==2.4.1
+Flask-SQLAlchemy==3.0.3
+jinja2==2.2.3
 line-bot-sdk==1.5.0
+gunicorn==19.9.0

@@ -28,6 +28,9 @@ YOUR_CHANNEL_SECRET = 'd4a805d159bb917a475bedc7d54916d2'
 configuration = Configuration(access_token= YOUR_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
+@app.route("/")
+def hello_wrld():
+    return "Hello,World"
 
 @app.route("/callback", methods=['POST'])
 def callback():
