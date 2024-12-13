@@ -14,18 +14,18 @@ from dotenv import load_dotenv
 
 load_dotenv('config.env')
 
-## ŠÂ‹«•Ï”‚ğ•Ï”‚ÉŠ„‚è“–‚Ä
+## ç’°å¢ƒå¤‰æ•°ã‚’å¤‰æ•°ã«å‰²ã‚Šå½“ã¦
 CHANNEL_ACCESS_TOKEN = os.environ["CHANNEL_ACCESS_TOKEN"]
 CHANNEL_SECRET = os.environ['CHANNEL_SECRET']
 
-## Flask ƒAƒvƒŠ‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‰»
+## Flask ã‚¢ãƒ—ãƒªã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
 app = Flask(__name__)
 
-## LINE ‚ÌƒAƒNƒZƒXƒg[ƒNƒ““Ç‚İ‚İ
+## LINE ã®ã‚¢ã‚¯ã‚»ã‚¹ãƒˆãƒ¼ã‚¯ãƒ³èª­ã¿è¾¼ã¿
 configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 
-## ƒR[ƒ‹ƒoƒbƒN‚Ì‚¨‚Ü‚¶‚È‚¢
+## ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã®ãŠã¾ã˜ãªã„
 @app.route("/callback", methods=['POST'])
 def callback():
 	# get X-Line-Signature header value
@@ -44,44 +44,44 @@ def callback():
 
 	return 'OK'
 
-## —F’B’Ç‰Á‚ÌƒƒbƒZ[ƒW‘—M
+## å‹é”è¿½åŠ æ™‚ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡
 @handler.add(FollowEvent)
 def handle_follow(event):
-	## APIƒCƒ“ƒXƒ^ƒ“ƒX‰»
+	## APIã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
 	with ApiClient(configuration) as api_client:
 		line_bot_api = MessagingApi(api_client)
 
-	## •ÔM
+	## è¿”ä¿¡
 	line_bot_api.reply_message(ReplyMessageRequest(
 		replyToken=event.reply_token,
 		messages=[TextMessage(text='Thank You!')]
 	))
 
-## ƒIƒEƒ€•Ô‚µƒƒbƒZ[ƒW
+## ã‚ªã‚¦ãƒ è¿”ã—ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
-	## APIƒCƒ“ƒXƒ^ƒ“ƒX‰»
+	## APIã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–
 	with ApiClient(configuration) as api_client:
 		line_bot_api = MessagingApi(api_client)
 
-	## óMƒƒbƒZ[ƒW‚Ì’†g‚ğæ“¾
+	## å—ä¿¡ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ä¸­èº«ã‚’å–å¾—
 	received_message = event.message.text
 
-	## API‚ğŒÄ‚ñ‚Å‘—MÒ‚ÌƒvƒƒtƒB[ƒ‹æ“¾
+	## APIã‚’å‘¼ã‚“ã§é€ä¿¡è€…ã®ãƒ—ãƒ­ãƒ•ã‚£ãƒ¼ãƒ«å–å¾—
 	profile = line_bot_api.get_profile(event.source.user_id)
 	display_name = profile.display_name
 
-	## •ÔMƒƒbƒZ[ƒW•ÒW
-	reply = f'{display_name}‚³‚ñ‚ÌƒƒbƒZ[ƒW\n{received_message}'
+	## è¿”ä¿¡ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç·¨é›†
+	reply = f"{display_name}ã•ã‚“ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸\n{received_message}"
 
-	## ƒIƒEƒ€•Ô‚µ
+	## ã‚ªã‚¦ãƒ è¿”ã—
 	line_bot_api.reply_message(ReplyMessageRequest(
 		replyToken=event.reply_token,
 		messages=[TextMessage(text=reply)]
 	))
 
 
-## ƒ{ƒbƒg‹N“®ƒR[ƒh
+## ãƒœãƒƒãƒˆèµ·å‹•ã‚³ãƒ¼ãƒ‰
 if __name__ == "__main__":
-	## ƒ[ƒJƒ‹‚ÅƒeƒXƒg‚·‚é‚Ì‚½‚ß‚ÉA`debug=True` ‚É‚µ‚Ä‚¨‚­
+	## ãƒ­ãƒ¼ã‚«ãƒ«ã§ãƒ†ã‚¹ãƒˆã™ã‚‹æ™‚ã®ãŸã‚ã«ã€`debug=True` ã«ã—ã¦ãŠã
 	app.run(host="0.0.0.0", port=8000, debug=True)
