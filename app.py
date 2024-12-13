@@ -1,67 +1,87 @@
 from flask import Flask, request, abort
-
-from linebot.v3 import (
-    WebhookHandler
-)
-from linebot.v3.exceptions import (
-    InvalidSignatureError
-)
+from linebot.v3 import WebhookHandler
+from linebot.v3.exceptions import InvalidSignatureError
 from linebot.v3.messaging import (
-    Configuration,
-    ApiClient,
-    MessagingApi,
-    ReplyMessageRequest,
-    TextMessage
+	ApiClient, Configuration, MessagingApi,
+	ReplyMessageRequest, PushMessageRequest,
+	TextMessage, PostbackAction
 )
 from linebot.v3.webhooks import (
-    MessageEvent,
-    TextMessageContent
+	FollowEvent, MessageEvent, PostbackEvent, TextMessageContent
 )
-
 import os
+from dotenv import load_dotenv
 
+load_dotenv('config.env')
+
+## 環境変数を変数に割り当て
+CHANNEL_ACCESS_TOKEN = os.environ["CHANNEL_ACCESS_TOKEN"]
+CHANNEL_SECRET = os.environ['CHANNEL_SECRET']
+
+## Flask アプリのインスタンス化
 app = Flask(__name__)
 
-YOUR_CHANNEL_ACCESS_TOKEN = '1o15J+IQMhDcANiGr9vDkljZyut4U5ojuQlxy7Q9+lEoqjldcznC+vmjwNRGeg9zZTClEXp5cT3cgddIRE9pn7IYAgo20nl+dF8wccIOPWgWaZDPihkYiNkQ943RcyLh7oL7m3Qg3HexRltlVO5T4gdB04t89/1O/w1cDnyilFU='
-YOUR_CHANNEL_SECRET = 'd4a805d159bb917a475bedc7d54916d2'
+## LINE のアクセストークン読み込み
+configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(CHANNEL_SECRET)
 
-configuration = Configuration(access_token= YOUR_CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(YOUR_CHANNEL_SECRET)
-
-@app.route("/")
-def hello_wrld():
-    return "Hello,World"
-
+## コールバックのおまじない
 @app.route("/callback", methods=['POST'])
 def callback():
-    # get X-Line-Signature header value
-    signature = request.headers['X-Line-Signature']
+	# get X-Line-Signature header value
+	signature = request.headers['X-Line-Signature']
 
-    # get request body as text
-    body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
+	# get request body as text
+	body = request.get_data(as_text=True)
+	app.logger.info("Request body: " + body)
 
-    # handle webhook body
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
-        abort(400)
+	# handle webhook body
+	try:
+		handler.handle(body, signature)
+	except InvalidSignatureError:
+		app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
+		abort(400)
 
-    return 'OK'
+	return 'OK'
 
+## 友達追加時のメッセージ送信
+@handler.add(FollowEvent)
+def handle_follow(event):
+	## APIインスタンス化
+	with ApiClient(configuration) as api_client:
+		line_bot_api = MessagingApi(api_client)
 
+	## 返信
+	line_bot_api.reply_message(ReplyMessageRequest(
+		replyToken=event.reply_token,
+		messages=[TextMessage(text='Thank You!')]
+	))
+
+## オウム返しメッセージ
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=event.message.text)]
-            )
-        )
+	## APIインスタンス化
+	with ApiClient(configuration) as api_client:
+		line_bot_api = MessagingApi(api_client)
 
+	## 受信メッセージの中身を取得
+	received_message = event.message.text
+
+	## APIを呼んで送信者のプロフィール取得
+	profile = line_bot_api.get_profile(event.source.user_id)
+	display_name = profile.display_name
+
+	## 返信メッセージ編集
+	reply = f'{display_name}さんのメッセージ\n{received_message}'
+
+	## オウム返し
+	line_bot_api.reply_message(ReplyMessageRequest(
+		replyToken=event.reply_token,
+		messages=[TextMessage(text=reply)]
+	))
+
+
+## ボット起動コード
 if __name__ == "__main__":
-    port = os.getenv("PORT")
-    app.run(host="0.0.0.0", port=port)
+	## ローカルでテストする時のために、`debug=True` にしておく
+	app.run(host="0.0.0.0", port=8000, debug=True)
