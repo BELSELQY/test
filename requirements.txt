@@ -25,7 +25,6 @@ PyQtWebEngine==5.15.6
 PyRect==0.2.0
 PyScreeze==1.0.1
 pytweening==1.2.0
-pywin32
 requests==2.32.3
 schedule==1.2.2
 selenium==4.26.1
