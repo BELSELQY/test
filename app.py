@@ -30,6 +30,7 @@ handler = WebhookHandler(CHANNEL_SECRET)
 def callback():
 	# get X-Line-Signature header value
 	signature = request.headers['X-Line-Signature']
+	print("テスト実行")
 
 	# get request body as text
 	body = request.get_data(as_text=True)
